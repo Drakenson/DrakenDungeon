@@ -1,0 +1,7 @@
+body{
+background-color: #722B00;
+}
+
+.no-close .ui-dialog-titlebar-close {
+  display: none;
+}
