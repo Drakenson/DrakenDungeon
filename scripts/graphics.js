@@ -1,5 +1,4 @@
-﻿function drawObject()
-{
+﻿function DrawObject(){
 	var canvas = document.getElementById('art');
 	var context = canvas.getContext('2d');
 	var wallcolor = "#DEB887";
@@ -97,9 +96,9 @@
 		context.stroke();
 	}
 	
-	this.compass = function(orientation)
+	this.compass = function(orientation, color)
 	{
-		context.fillStyle = "#E6E6FA";
+		context.fillStyle = color;
 		context.font="100px Courier";
 		switch(orientation)	{
 		case 0:
@@ -117,12 +116,11 @@
 		}
 	}
 }
-	
-	
-function drawrooms(world, player1)
-{
+
+// Draw Main Field		
+function DrawRooms(world, player1){
 	doors = world.fields[player1.position[0]][player1.position[1]].substr(0,4);
-	room = new drawObject();
+	room = new DrawObject();
 	
 	var i = 0+player1.orientation;
 	if (doors.charAt(i) == "1") 
@@ -169,6 +167,106 @@ function drawrooms(world, player1)
 	}
 		
 	room.floor_ceiling();
-	room.compass(player1.orientation);
+	
+	
+	if (world.fields[player1.position[0]][player1.position[1]].charAt(6) == world.fields[player1.position[0]][player1.position[1]].charAt(5) && world.fields[player1.position[0]][player1.position[1]].slice(5,7) != "00") {				
+		room.compass(player1.orientation, "#800000");
+	}
+	else if (world.fields[player1.position[0]][player1.position[1]].charAt(4) == world.fields[player1.position[0]][player1.position[1]].charAt(5) && world.fields[player1.position[0]][player1.position[1]].slice(4,6) != "00") {	
+		room.compass(player1.orientation, "#008000");
+	}
+	else {room.compass(player1.orientation, "#FFFFFF");}
 
+}
+
+//Draw Minimap
+function DrawMinimap(world, player1){
+	var scale = world.scale;
+	var showdoors = player1.showdoors;
+	var canvas = document.getElementById('map');
+	canvas.height = world.size * scale;
+	canvas.width = world.size * scale;
+	var ctx = canvas.getContext("2d");
+	
+	for (var x = 1; x <= world.size; x++)
+	{
+		for (var y = 1; y <= world.size; y++)
+		{
+			var field = world.fields[x][y].slice(0,4);
+			var visitedfield = world.fields[x][y].charAt(7);
+			if (field != "0000") {
+				ctx.fillStyle = "#DEB887";
+				ctx.fillRect ((x-1)*scale,(y-1)*scale,scale,scale);
+				if (showdoors || visitedfield == "1") {
+					if (field.charAt(0) == "0") {
+						ctx.beginPath();
+						ctx.moveTo((x-1)*scale,						(y-1)*scale);
+						ctx.lineTo((x-1)*scale + scale, 			(y-1)*scale);
+					} else {
+						ctx.beginPath();
+						ctx.moveTo((x-1)*scale,						(y-1)*scale);
+						ctx.lineTo((x-1)*scale + (scale / 3), 		(y-1)*scale);
+						ctx.moveTo((x-1)*scale + (2*(scale / 3)),	(y-1)*scale);
+						ctx.lineTo((x-1)*scale + scale, 			(y-1)*scale);
+					};
+						
+					if (field.charAt(1) == "0") {
+						ctx.lineTo((x-1)*scale + scale, 			(y-1)*scale + scale);
+					} else {
+						ctx.lineTo((x-1)*scale + scale, 			(y-1)*scale + (scale / 3));
+						ctx.moveTo((x-1)*scale + scale, 			(y-1)*scale + (2*(scale / 3)));
+						ctx.lineTo((x-1)*scale + scale, 			(y-1)*scale + (scale));
+					};
+					if (field.charAt(2) == "0") {
+						ctx.lineTo((x-1)*scale, 					(y-1)*scale + scale);
+					} else {
+						ctx.lineTo((x-1)*scale + (2*(scale / 3)), 	(y-1)*scale + scale);
+						ctx.moveTo((x-1)*scale + (scale / 3),		(y-1)*scale + scale);
+						ctx.lineTo((x-1)*scale, 					(y-1)*scale + scale);
+					};
+
+					if (field.charAt(3) == "0") {
+						ctx.lineTo((x-1)*scale, 					(y-1)*scale);
+					} else {
+						ctx.lineTo((x-1)*scale, 					(y-1)*scale + (2*(scale / 3)));
+						ctx.moveTo((x-1)*scale, 					(y-1)*scale + (scale / 3));
+						ctx.lineTo((x-1)*scale, 					(y-1)*scale);
+					};
+					ctx.stroke();
+				}
+			} else {
+				//ctx.fillStyle = "#A0522D";
+				ctx.fillStyle = "#DEB887";
+				ctx.fillRect ((x-1)*scale,(y-1)*scale,scale,scale);
+				//ctx.strokeRect ((x-1)*scale,(y-1)*scale,scale,scale);
+			}
+			
+			if (world.fields[x][y].charAt(6) == world.fields[x][y].charAt(5) && world.fields[x][y].slice(5,7) != "00") {				
+				ctx.fillStyle = "#800000";
+				ctx.fillRect ((x-1)*scale+4,(y-1)*scale+4,scale-8,scale-8);
+			}
+			if (world.fields[x][y].charAt(4) == world.fields[x][y].charAt(5) && world.fields[x][y].slice(4,6) != "00") {	
+				ctx.fillStyle = "#008000";
+				ctx.fillRect ((x-1)*scale+4,(y-1)*scale+4,scale-8,scale-8);
+			}
+		}
+	}
+	ctx.fillStyle = "#FF5500";
+	switch(player1.orientation)
+	{
+		case 0:
+			ctx.fillRect (((player1.position[0]-1)*scale)+4,((player1.position[1]-1)*scale)+0,scale-8,scale-8);
+			break;
+		case 1:
+			ctx.fillRect (((player1.position[0]-1)*scale)+8,((player1.position[1]-1)*scale)+4,scale-8,scale-8);
+			break;
+		case 2:
+			ctx.fillRect (((player1.position[0]-1)*scale)+4,((player1.position[1]-1)*scale)+8,scale-8,scale-8);
+			break;
+		case 3:
+			ctx.fillRect (((player1.position[0]-1)*scale)+0,((player1.position[1]-1)*scale)+4,scale-8,scale-8);
+			break;
+	}
+	ctx.fillStyle = "#CCFF00";
+	ctx.fillRect (((player1.position[0]-1)*scale)+3,((player1.position[1]-1)*scale)+3,scale-6,scale-6);
 }

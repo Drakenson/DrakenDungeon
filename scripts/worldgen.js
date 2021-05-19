@@ -1,24 +1,27 @@
-function roomwalk(world, x, y, origin, worldsize, mindoors, verbose)
+function RoomWalker(world, x, y, origin, worldsize, mindoors, verbose)
 {
-	if (verbose) console.log("Hello its me. I am at Room "+x+"/"+y+".");
+	if (verbose) console.log("Generating "+x+"/"+y+".");
 	do {
 	
 		var northdoor = Math.round(Math.random());
 		var eastdoor = Math.round(Math.random());
 		var southdoor = Math.round(Math.random());
 		var westdoor = Math.round(Math.random());
-		var specials = Math.trunc((Math.random()*9))
+		var specials1 = Math.trunc((Math.random()*9))
+		var specials2 = Math.trunc((Math.random()*9))
+		var specials3 = Math.trunc((Math.random()*9))
+		var visited = 0;
+		
 		//0 = North
 		//1 = East
 		//2 = South
 		//3 = West
-	
-		world.fields[x][y] = String(northdoor) + String(eastdoor) + String(southdoor) + String(westdoor) +  String(specials) + "0";
-		if (verbose) console.log("Dreaming about Field with the number "+world.fields[x][y]+" and with "+analysefield(world.fields[x][y])+" Doors.");
+		world.fields[x][y] = String(northdoor) + String(eastdoor) + String(southdoor) + String(westdoor) +  String(specials1) + String(specials2) + String(specials3) + String(visited);
+		if (verbose) console.log("Working on "+world.fields[x][y]+" with "+analysefield(world.fields[x][y])+" Doors.");
 		
 		} 
 		while (analysefield(world.fields[x][y]) < mindoors && nextRoomAvailable(world, x, y));
-		if (verbose) console.log("That's it! I've got an solution!");
+		if (verbose) console.log("Found Solution.");
 		
 		if (world.fields[x][y-1].charAt(2) == "0" && world.fields[x][y-1].substring(0,4) != "0000") northdoor = 0;
 		if (world.fields[x+1][y].charAt(3) == "0" && world.fields[x+1][y].substring(0,4) != "0000") eastdoor = 0;
@@ -34,34 +37,42 @@ function roomwalk(world, x, y, origin, worldsize, mindoors, verbose)
 		if (y == 1) northdoor = 0;
 		if (x == worldsize) eastdoor = 0;
 		if (y == worldsize) southdoor = 0;
-
-		world.fields[x][y] = "000000";
-		world.fields[x][y] = String(northdoor) + String(eastdoor) + String(southdoor) + String(westdoor) +  String(specials) + "0";
-		if (verbose) console.log("A perfect number for this field is "+world.fields[x][y]+".");
+		
+		world.fields[x][y] = "00000000";
+		world.fields[x][y] = String(northdoor) + String(eastdoor) + String(southdoor) + String(westdoor) +  String(specials1) + String(specials2) + String(specials3) + String(visited);
+		if (verbose) console.log("Generated Number is "+world.fields[x][y]+".");
 	
-		if (origin != 0 && world.fields[x][y-1].substring(0,4) == "0000" && northdoor == 1 && y-1 > 0) 			{roomwalk(world, x,		y-1,	2, worldsize, mindoors, verbose)};
-		if (origin != 1 && world.fields[x+1][y].substring(0,4) == "0000" && eastdoor  == 1 && x+1 <= worldsize)	{roomwalk(world, x+1,	y, 		3, worldsize, mindoors, verbose)};
-		if (origin != 2 && world.fields[x][y+1].substring(0,4) == "0000" && southdoor == 1 && y+1 <= worldsize) {roomwalk(world, x, 	y+1,	0, worldsize, mindoors, verbose)};
-		if (origin != 3 && world.fields[x-1][y].substring(0,4) == "0000" && westdoor  == 1 && x-1 > 0)			{roomwalk(world, x-1, 	y,		1, worldsize, mindoors, verbose)};
-
+		if (origin != 0 && world.fields[x][y-1].substring(0,4) == "0000" && northdoor == 1 && y-1 > 0) 			{RoomWalker(world, x,		y-1,	2, worldsize, mindoors, verbose)};
+		if (origin != 1 && world.fields[x+1][y].substring(0,4) == "0000" && eastdoor  == 1 && x+1 <= worldsize)	{RoomWalker(world, x+1,	y, 		3, worldsize, mindoors, verbose)};
+		if (origin != 2 && world.fields[x][y+1].substring(0,4) == "0000" && southdoor == 1 && y+1 <= worldsize) {RoomWalker(world, x, 	y+1,	0, worldsize, mindoors, verbose)};
+		if (origin != 3 && world.fields[x-1][y].substring(0,4) == "0000" && westdoor  == 1 && x-1 > 0)			{RoomWalker(world, x-1, 	y,		1, worldsize, mindoors, verbose)};
 }
 
-function worldgen(MyWorld)
+function WorldBuilder(MyWorld)
 {
-	worldsize = MyWorld.size;
-	mindoors = MyWorld.mindoors;
-	verbose = MyWorld.verbose;
-	MyWorld.fields = new Array(worldsize);
-	for (var i = 0; i <= worldsize+1; i++)
-	{
-		MyWorld.fields[i] = new Array(worldsize);
-		for (var j = 0; j <= worldsize+1; j++)
+	MyWorld.fields = new Array(MyWorld.size);
+
+	do {
+		var roomcount = 0;
+		console.log(roomcount);
+
+		for (var i = 0; i <= MyWorld.size+1; i++)
 		{
-			MyWorld.fields[i][j] = "000000";
+			MyWorld.fields[i] = new Array(MyWorld.size);
+			for (var j = 0; j <= MyWorld.size+1; j++)
+			{
+				MyWorld.fields[i][j] = "00000000";
+			}
+		}	
+		RoomWalker(MyWorld,Math.floor(MyWorld.size/2),Math.floor(MyWorld.size/2),0,MyWorld.size, MyWorld.mindoors, MyWorld.verbose);
+		
+		for (x=0;x<=MyWorld.size+1;x++){
+			for (y=0;y<=MyWorld.size+1;y++){
+				if (MyWorld.fields[x][y].substr(0,4) != '0000') {roomcount++};
+			}
 		}
-	}	
-	roomwalk(MyWorld,Math.floor(worldsize/2),Math.floor(worldsize/2),0,worldsize, mindoors, verbose);
-	return MyWorld.fields;	
+		console.log(roomcount);
+	} while (roomcount < MyWorld.minrooms);
 }
 
 /**
